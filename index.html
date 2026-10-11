@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Athena | Modern Library Database Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏛️</text></svg>">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">🏛️</div>
+        <div>
+          <div class="brand-title" id="brandInstitutionTitle">Athena LMS</div>
+          <div class="brand-subtitle">Library Database System</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebarNavContainer">
+        <!-- Rendered dynamically by renderNavigation() in app.js -->
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-snippet">
+          <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80" id="topUserAvatar" class="user-avatar" alt="Avatar">
+          <div class="user-info">
+            <div class="user-name" id="topUserFullname">Victoria Sterling</div>
+            <span class="user-role-badge" id="topUserRoleBadge">Admin</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="main-content">
+      <!-- Top Navigation Bar -->
+      <header class="top-navbar">
+        <div class="nav-left">
+          <div class="search-bar-trigger" onclick="openGlobalSearchModal()">
+            <span>🔍</span>
+            <span>Quick search catalog, ISBN, members...</span>
+            <kbd class="kbd-shortcut">/</kbd>
+          </div>
+        </div>
+
+        <div class="nav-right">
+          <!-- One-Click Demo Role Switcher -->
+          <div class="role-switcher-container">
+            <span class="role-switcher-label">Persona:</span>
+            <select class="role-select" id="roleSwitcherSelect" onchange="onRoleSwitcherChanged(this)">
+              <!-- Options populated dynamically -->
+            </select>
+          </div>
+
+          <!-- Notification Bell -->
+          <button class="icon-btn" id="notifBellBtn" onclick="toggleNotificationDropdown()" title="Notifications">
+            <span>🔔</span>
+            <span class="badge-dot" id="notifBadgeDot" style="display: none;"></span>
+          </button>
+
+          <!-- Notifications Dropdown -->
+          <div class="notification-dropdown" id="notificationDropdown">
+            <div class="notification-header">
+              <span style="font-size: 13.5px; font-weight: 700; color: var(--slate-900);">Notifications &amp; Alerts</span>
+              <button class="btn btn-secondary btn-sm" onclick="markAllNotificationsAsRead()">Mark all read</button>
+            </div>
+            <div class="notification-list" id="notificationList">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Body Content Area -->
+      <main class="page-body" id="mainAppContainer">
+        <!-- Rendered dynamically by view controllers -->
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ======================================================== -->
+  <!-- MODALS -->
+  <!-- ======================================================== -->
+
+  <!-- 1. Book Details Modal -->
+  <div class="modal-backdrop" id="bookDetailsModal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title">Book Information &amp; Circulation History</h3>
+        <button class="modal-close" onclick="closeModal('bookDetailsModal')">&times;</button>
+      </div>
+      <div class="modal-body" id="bookDetailsBody">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Add / Edit Book Modal -->
+  <div class="modal-backdrop" id="bookEditModal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title" id="bookModalTitle">Add New Book Title</h3>
+        <button class="modal-close" onclick="closeModal('bookEditModal')">&times;</button>
+      </div>
+      <form id="bookForm" onsubmit="saveBookForm(event)">
+        <input type="hidden" id="bookFormId">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Book Title *</label>
+              <input type="text" class="form-control" id="bookTitleInput" placeholder="e.g. Clean Code" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ISBN (Unique) *</label>
+              <input type="text" class="form-control" id="bookIsbnInput" placeholder="e.g. 978-0132350884" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Author</label>
+              <select class="form-control" id="bookAuthorSelect">
+                <!-- Loaded dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category / Genre</label>
+              <select class="form-control" id="bookCategorySelectInput">
+                <!-- Loaded dynamically -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Publisher</label>
+              <input type="text" class="form-control" id="bookPublisherInput" placeholder="e.g. Prentice Hall">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Publication Year</label>
+              <input type="number" class="form-control" id="bookYearInput" placeholder="e.g. 2008">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Edition</label>
+              <input type="text" class="form-control" id="bookEditionInput" placeholder="e.g. 1st Edition">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Total Copies Inventory *</label>
+              <input type="number" min="1" class="form-control" id="bookTotalCopiesInput" value="1" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Shelf Location Number</label>
+              <input type="text" class="form-control" id="bookShelfInput" placeholder="e.g. Shelf CS-102">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cover Image URL</label>
+              <input type="url" class="form-control" id="bookCoverUrlInput" placeholder="https://...">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Book Synopsis / Description</label>
+            <textarea class="form-control" id="bookDescInput" rows="3" placeholder="Enter summary, topics covered..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('bookEditModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Book</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Member Profile Modal -->
+  <div class="modal-backdrop" id="memberProfileModal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title">Library Member Account Details</h3>
+        <button class="modal-close" onclick="closeModal('memberProfileModal')">&times;</button>
+      </div>
+      <div class="modal-body" id="memberProfileBody">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Register / Edit Member Modal -->
+  <div class="modal-backdrop" id="memberEditModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="memberModalTitle">Register New Member</h3>
+        <button class="modal-close" onclick="closeModal('memberEditModal')">&times;</button>
+      </div>
+      <form id="memberForm" onsubmit="saveMemberForm(event)">
+        <input type="hidden" id="memberFormId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" class="form-control" id="memberNameInput" placeholder="e.g. Jane Doe" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Email Address *</label>
+              <input type="email" class="form-control" id="memberEmailInput" placeholder="jane@example.com" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" id="memberPhoneInput" placeholder="+1 (555) 000-0000">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Residential / Campus Address</label>
+            <input type="text" class="form-control" id="memberAddressInput" placeholder="Room 402, Hall A or Street address">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Membership Type</label>
+              <select class="form-control" id="memberTypeSelect">
+                <option value="Student">Student (Limit: 4)</option>
+                <option value="Faculty">Faculty (Limit: 8)</option>
+                <option value="General">General Community (Limit: 3)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Max Borrow Limit (Books)</label>
+              <input type="number" min="1" max="15" class="form-control" id="memberLimitInput" value="3" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select class="form-control" id="memberStatusSelect">
+                <option value="Active">Active</option>
+                <option value="Suspended">Suspended</option>
+                <option value="Expired">Expired</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Expiry Date</label>
+              <input type="date" class="form-control" id="memberExpiryInput">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('memberEditModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Member</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. Issue Book Modal -->
+  <div class="modal-backdrop" id="issueBookModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Issue Book to Member</h3>
+        <button class="modal-close" onclick="closeModal('issueBookModal')">&times;</button>
+      </div>
+      <form id="issueBookForm" onsubmit="submitIssueBookForm(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Select Book Title (Available Copies) *</label>
+            <select class="form-control" id="issueBookSelect" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Select Registered Member *</label>
+            <select class="form-control" id="issueMemberSelect" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Loan Duration</label>
+            <select class="form-control" id="issueLoanDays">
+              <option value="7">7 Days (Short Loan)</option>
+              <option value="14" selected>14 Days (Standard Loan)</option>
+              <option value="30">30 Days (Extended Loan)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Remarks / Staff Notes</label>
+            <input type="text" class="form-control" id="issueRemarks" placeholder="Optional notes">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('issueBookModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Confirm Issue</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. Return Confirmation Modal -->
+  <div class="modal-backdrop" id="returnConfirmModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Process Book Return</h3>
+        <button class="modal-close" onclick="closeModal('returnConfirmModal')">&times;</button>
+      </div>
+      <div class="modal-body" id="returnConfirmBody">
+        <!-- Dynamic content with overdue fine calculation -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('returnConfirmModal')">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="confirmProcessReturn()">Complete Check-In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Quick Return Selector Modal -->
+  <div class="modal-backdrop" id="quickReturnModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Quick Book Check-In</h3>
+        <button class="modal-close" onclick="closeModal('quickReturnModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Choose Active Loan</label>
+          <select class="form-control" id="quickReturnLoanSelect"></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('quickReturnModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="proceedWithQuickReturn()">Proceed to Return</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Place Reservation Modal -->
+  <div class="modal-backdrop" id="newReservationModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Place Book Reservation</h3>
+        <button class="modal-close" onclick="closeModal('newReservationModal')">&times;</button>
+      </div>
+      <form id="reservationForm" onsubmit="submitReservationForm(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Book to Reserve *</label>
+            <select class="form-control" id="resBookSelect" required></select>
+          </div>
+          <div class="form-group" id="resMemberGroup">
+            <label class="form-label">Reserving Member *</label>
+            <select class="form-control" id="resMemberSelect"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hold Notes</label>
+            <input type="text" class="form-control" id="resNotesInput" placeholder="e.g. Notify via SMS or email">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('newReservationModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Place Hold</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 9. Pay Fine Modal -->
+  <div class="modal-backdrop" id="payFineModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Collect Overdue Fine Payment</h3>
+        <button class="modal-close" onclick="closeModal('payFineModal')">&times;</button>
+      </div>
+      <form id="payFineForm" onsubmit="submitFinePayment(event)">
+        <input type="hidden" id="payFineBorrowingId">
+        <div class="modal-body">
+          <div style="background: var(--slate-50); padding: 12px; border-radius: var(--radius-md); margin-bottom: 16px;">
+            <div style="font-size: 13px; color: var(--slate-600);">Member: <strong id="payFineMemberName" style="color: var(--slate-900);">-</strong></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Amount ($) *</label>
+            <input type="number" step="0.25" min="0.25" class="form-control" id="payFineAmountInput" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Tender Method</label>
+            <select class="form-control" id="payFineMethodSelect">
+              <option value="Cash">Cash</option>
+              <option value="Card">Debit / Credit Card</option>
+              <option value="Online">Online / Portal Transfer</option>
+              <option value="CampusPay">Campus Student Account</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Receipt Memo</label>
+            <input type="text" class="form-control" id="payFineNotesInput" placeholder="e.g. Settled at front counter">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('payFineModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Process Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 10. Author Edit Modal -->
+  <div class="modal-backdrop" id="authorEditModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="authorModalTitle">Add Author</h3>
+        <button class="modal-close" onclick="closeModal('authorEditModal')">&times;</button>
+      </div>
+      <form id="authorForm" onsubmit="saveAuthorForm(event)">
+        <input type="hidden" id="authorFormId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Author Name *</label>
+            <input type="text" class="form-control" id="authorNameInput" placeholder="e.g. Donald E. Knuth" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nationality</label>
+              <input type="text" class="form-control" id="authorNationalityInput" placeholder="e.g. American">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Birth Year</label>
+              <input type="number" class="form-control" id="authorBirthYearInput" placeholder="e.g. 1938">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Death Year (Leave empty if living)</label>
+            <input type="number" class="form-control" id="authorDeathYearInput" placeholder="e.g. 1988">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Biography</label>
+            <textarea class="form-control" id="authorBioInput" rows="3" placeholder="Summary of author achievements..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('authorEditModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Author</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 11. Category Edit Modal -->
+  <div class="modal-backdrop" id="categoryEditModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="categoryModalTitle">Add Category</h3>
+        <button class="modal-close" onclick="closeModal('categoryEditModal')">&times;</button>
+      </div>
+      <form id="categoryForm" onsubmit="saveCategoryForm(event)">
+        <input type="hidden" id="categoryFormId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Category / Genre Name *</label>
+            <input type="text" class="form-control" id="categoryNameInput" placeholder="e.g. Computer Science" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Color Code</label>
+            <input type="color" class="form-control" id="categoryColorInput" value="#4f46e5" style="height: 40px; padding: 2px;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" id="categoryDescInput" rows="3" placeholder="Category scope..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('categoryEditModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 12. Global Instant Search Modal -->
+  <div class="modal-backdrop" id="globalSearchModal">
+    <div class="modal-dialog">
+      <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+        <div class="search-input-box" style="width: 100%;">
+          <span class="icon">🔍</span>
+          <input type="text" id="globalSearchQuery" placeholder="Search catalog books, authors, members..." style="font-size: 15px; padding: 12px 14px 12px 38px;" oninput="handleGlobalSearchInput(this.value)">
+        </div>
+        <button class="modal-close" onclick="closeModal('globalSearchModal')" style="margin-left: 8px;">&times;</button>
+      </div>
+      <div class="modal-body" id="globalSearchResults" style="max-height: 400px; padding-top: 14px;">
+        <div style="padding: 30px; text-align: center; color: var(--slate-400);">Type keywords to search books, ISBNs, authors, or members...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application View Modules -->
+  <script src="js/api.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/views/dashboard.js"></script>
+  <script src="js/views/books.js"></script>
+  <script src="js/views/members.js"></script>
+  <script src="js/views/circulation.js"></script>
+  <script src="js/views/reservations.js"></script>
+  <script src="js/views/fines.js"></script>
+  <script src="js/views/taxonomy.js"></script>
+  <script src="js/views/reports.js"></script>
+  <script src="js/views/settings.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

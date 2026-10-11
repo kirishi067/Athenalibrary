@@ -988,18 +988,22 @@ async function handleRequest(req, res) {
     // STATIC FILE SERVING
     // ----------------------------------------------------
     let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
-
-    // Normalize and prevent directory traversal
     filePath = path.normalize(filePath);
-    if (!filePath.startsWith(PUBLIC_DIR)) {
-      res.writeHead(403, { 'Content-Type': 'text/plain' });
-      return res.end('Access Denied');
+
+    // If not found in public/, check root directory
+    if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+      const rootPath = path.normalize(path.join(__dirname, pathname === '/' ? 'index.html' : pathname));
+      if (fs.existsSync(rootPath) && fs.statSync(rootPath).isFile()) {
+        filePath = rootPath;
+      }
     }
 
     fs.stat(filePath, (err, stats) => {
       if (err || !stats.isFile()) {
         // Fallback to index.html for SPA if not found
-        const fallbackIndex = path.join(PUBLIC_DIR, 'index.html');
+        const fallbackIndex = fs.existsSync(path.join(PUBLIC_DIR, 'index.html')) 
+          ? path.join(PUBLIC_DIR, 'index.html') 
+          : path.join(__dirname, 'index.html');
         fs.readFile(fallbackIndex, (fbErr, content) => {
           if (fbErr) {
             res.writeHead(404, { 'Content-Type': 'text/plain' });
