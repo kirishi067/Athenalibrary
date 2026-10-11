@@ -1,0 +1,19 @@
+{
+  "name": "athena-library-management-system",
+  "version": "1.0.0",
+  "description": "A web-based modern Library Database Management System with circulation, cataloging, reservations, overdue fines, and role-based access control.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "library-management-system",
+    "lms",
+    "sqlite",
+    "nodejs",
+    "circulation",
+    "book-inventory"
+  ],
+  "author": "Library Management System",
+  "license": "MIT"
+}

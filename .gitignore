@@ -1,0 +1,12 @@
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Node / Scratch
+node_modules/
+scratch/
+
+# OS Files
+.DS_Store
+Thumbs.db
